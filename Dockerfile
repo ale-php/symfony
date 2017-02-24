@@ -1,17 +1,17 @@
-FROM alephp/debian-apache
+FROM php:7.0-apache
 MAINTAINER Alexandre E Souza <alexandre@indev.net.br>
-RUN apt-get install -y wget nano
-RUN echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-RUN echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-RUN wget https://www.dotdeb.org/dotdeb.gpg
-RUN apt-key add dotdeb.gpg
-RUN rm dotdeb.gpg
-RUN apt-get update
-RUN apt-get install -y php7.0 php7.0-mysql php7.0-sqlite
-COPY files/index.php /var/www/html/
-RUN rm /var/www/html/index.html
-RUN echo "ServerName DEBIAN" >> /etc/apache2/apache2.conf
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
-EXPOSE 80
+
+RUN apt-get update \
+    && apt-get install -y \
+        zlib1g-dev \
+        nano \
+        vim \
+        git \
+        cron \
+    && a2enmod rewrite remoteip
+
 RUN a2enmod rewrite
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+RUN docker-php-ext-install -j$(nproc) zip \
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql bcmath
+
+#COPY ./files/000-default.conf /etc/apache2/sites-enabled/000-default.conf
